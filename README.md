@@ -1,3 +1,5 @@
+(Code Port done with Claude.AI)
+
 # LibZ
 LibZ is a library for a few mods made by Globox_Z.
 
