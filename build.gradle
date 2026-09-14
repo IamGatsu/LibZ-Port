@@ -1,0 +1,92 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version '1.17.+'
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.terraformersmc.com/" }
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	// 26.2 is unobfuscated and uses Mojang's official mappings directly - no "mappings" line / Yarn needed anymore.
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric API. This is technically optional, but you probably want it anyway.
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	include implementation("blue.endless:jankson:${project.jankson_version}")
+    // Cloth
+    implementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    // ModMenu
+    compileOnly("com.terraformersmc:modmenu:${project.mod_menu_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    runtimeOnly("com.terraformersmc:modmenu:${project.mod_menu_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
+	// REI has a confirmed 26.2 release (v26.2.820).
+	compileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:26.2.820"
+	// EMI has NOT published a 26.2 build yet (latest EMI release only supports up to 1.21.1), so the EMI
+	// compileOnly dependency and LibzEmiPlugin.java were removed from this port for now - see README.
+	// Once EMI ships a 26.2 build, re-add: compileOnly "dev.emi:emi-fabric:<new-26.2-version>"
+	// and restore compat/LibzEmiPlugin.java + the "emi" entrypoint in fabric.mod.json.
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version, "fabric_version": project.fabric_version, "loader_version": project.loader_version, "minecraft_version": project.minecraft_version, "cloth_config_version": project.cloth_config_version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	// Loom will automatically attach sourcesJar to the "build" task if it is present.
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}"}
+	}
+}
+
+
+// configure the maven publication
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
+	}
+}
