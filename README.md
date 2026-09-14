@@ -14,8 +14,8 @@ For Mod Developers
 Bring in the library as a dependency:
 
 Be sure to add a maven like the modrinth maven to your build.gradle:
-
-```repositories {
+```
+repositories {
     maven { url "https://api.modrinth.com/maven" }
 }
 
@@ -23,8 +23,10 @@ dependencies {
     modApi ("maven.modrinth:libz:${libz_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
-}```
+}
+```
 Set the required version for libz in the gradle.properties:
-
+```
     libz_version=...
+```
 For the required version check out the versions tab on Modrinth.
